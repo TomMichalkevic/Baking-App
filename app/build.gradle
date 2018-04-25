@@ -9,6 +9,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        applicationVariants.all { variant ->
+            variant.buildConfigField "String", "RECIPE_LIST_LINK", getLink()
+        }
     }
     buildTypes {
         release {
@@ -20,10 +23,11 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:cardview-v7:27.+'
+    compile 'com.android.support:recyclerview-v7:27.+'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.facebook.stetho:stetho:1.5.0'
-    compile 'com.android.support:design:27.1.0'
     compile 'com.jakewharton:butterknife:8.8.1'
     compile 'com.google.code.gson:gson:2.8.2'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
@@ -31,4 +35,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
+
+static def getLink(){
+    def Properties props = new Properties()
+    props.load(new FileInputStream(new File('secrets.properties')))
+    return props['RECIPE_LIST_LINK']
 }
