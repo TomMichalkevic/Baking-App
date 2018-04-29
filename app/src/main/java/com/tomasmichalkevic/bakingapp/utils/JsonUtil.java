@@ -40,6 +40,7 @@ package com.tomasmichalkevic.bakingapp.utils;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ProgressBar;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,6 +61,7 @@ public class JsonUtil extends AsyncTask<String, Void, String> {
     private static final String REQUEST_METHOD = "GET";
     private static final int READ_TIMEOUT = 15000;
     private static final int CONNECTION_TIMEOUT = 15000;
+    private ProgressBar progressBar;
 
     @Override
     protected String doInBackground(String... strings) {

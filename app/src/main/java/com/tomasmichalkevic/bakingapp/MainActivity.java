@@ -43,9 +43,12 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -77,16 +80,17 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        if(isNetworkAvailable(this)){
-            recipes.addAll(getRecipes());
-        }else{
-            Toast.makeText(this, "Cannot refresh due to no network!",
-                    Toast.LENGTH_LONG).show();
-        }
 
-        recipeCardAdapter = new RecipeCardAdapter(recipes);
+        recipeCardAdapter = new RecipeCardAdapter(recipes, new RecipeCardAdapter.ItemClickListener() {
+            @Override
+            public void onItemClick(Recipe view) {
+                Toast.makeText(MainActivity.this, "Clicked on card! " + view.getName(), Toast.LENGTH_LONG).show();
+            }
+        });
 
         mLayoutManagerRecipes = new LinearLayoutManager(this);
+
+//        mLayoutManagerRecipes = new GridLayoutManager(this, 2);
 
         recipesRecyclerView.setLayoutManager(mLayoutManagerRecipes);
 
@@ -94,7 +98,12 @@ public class MainActivity extends Activity {
 
         recipes.clear();
 
-        recipes.addAll(getRecipes());
+        if(isNetworkAvailable(this)){
+            recipes.addAll(getRecipes());
+        }else{
+            Toast.makeText(this, "Cannot refresh due to no network!",
+                    Toast.LENGTH_LONG).show();
+        }
 
         recipeCardAdapter.notifyDataSetChanged();
     }
