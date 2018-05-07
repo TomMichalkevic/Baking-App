@@ -41,44 +41,67 @@ package com.tomasmichalkevic.bakingapp;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.tomasmichalkevic.bakingapp.data.Ingredient;
+import com.tomasmichalkevic.bakingapp.data.Recipe;
 import com.tomasmichalkevic.bakingapp.data.Step;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * Created by tomasmichalkevic on 30/04/2018.
+ * Created by tomasmichalkevic on 03/05/2018.
  */
 
-public class StepDetailsFragment extends Fragment {
+public class IngredientsFragment extends Fragment {
 
-    @BindView(R.id.step_description) TextView stepDescription;
+    private ArrayList<Ingredient> ingredientList = new ArrayList<>();
+    private IngredientCardAdapter ingredientCardAdapter;
 
-    private Step step;
+    private RecyclerView.LayoutManager mLayoutManagerRecipes;
+
+    @BindView(R.id.ingredient_recycler_view)
+    RecyclerView ingredientRecyclerView;
+
+    private Ingredient[] ingredients = {};
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_steps_details, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_recipe_ingredients, container, false);
         ButterKnife.bind(this, rootView);
+        String data = getActivity().getIntent().getExtras().getString("data");
+        Ingredient[] ingredientsArray = new Gson().fromJson(data, Ingredient[].class);
 
-        if(step != null){
-            stepDescription.setText(step.getDescription());
-            Log.i("stuff", "onCreateView: been here");
-        }
+        ingredientCardAdapter = new IngredientCardAdapter(ingredientList);
 
+        mLayoutManagerRecipes = new LinearLayoutManager(getContext());
 
+        ingredientRecyclerView.setLayoutManager(mLayoutManagerRecipes);
+
+        ingredientRecyclerView.setAdapter(ingredientCardAdapter);
+
+        ingredientList.clear();
+
+        Collections.addAll(ingredientList, ingredientsArray);
+
+        ingredientCardAdapter.notifyDataSetChanged();
         return rootView;
     }
 
-    public void setData(Step step) {
-        this.step = step;
-        Log.i("stuff", "setData: " + step.getDescription());
+    public void setData(Ingredient[] ingredients) {
+        this.ingredients = ingredients;
     }
 }

@@ -38,47 +38,38 @@
 
 package com.tomasmichalkevic.bakingapp;
 
-import android.app.Fragment;
+import android.app.Activity;
+import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.tomasmichalkevic.bakingapp.data.Step;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
- * Created by tomasmichalkevic on 30/04/2018.
+ * Created by tomasmichalkevic on 03/05/2018.
  */
 
-public class StepDetailsFragment extends Fragment {
+public class RecipeStepActivity extends Activity {
 
-    @BindView(R.id.step_description) TextView stepDescription;
-
-    private Step step;
-
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_steps_details, container, false);
-        ButterKnife.bind(this, rootView);
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_recipe_step);
 
-        if(step != null){
-            stepDescription.setText(step.getDescription());
-            Log.i("stuff", "onCreateView: been here");
+        if (savedInstanceState == null) {
+
+            StepDetailsFragment stepDetails = new StepDetailsFragment();
+
+            if (getIntent().hasExtra("data")) {
+                stepDetails.setData(new Gson().fromJson(getIntent().getStringExtra("data"), Step.class));
+            }
+            FragmentManager fragmentManager = getFragmentManager();
+
+            fragmentManager.beginTransaction()
+                    .add(R.id.recipe_details_fragment, stepDetails)
+                    .commit();
         }
 
-
-        return rootView;
-    }
-
-    public void setData(Step step) {
-        this.step = step;
-        Log.i("stuff", "setData: " + step.getDescription());
     }
 }

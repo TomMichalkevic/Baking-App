@@ -39,7 +39,9 @@
 package com.tomasmichalkevic.bakingapp;
 
 import android.app.Activity;
+import android.app.IntentService;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -52,11 +54,15 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.tomasmichalkevic.bakingapp.data.Ingredient;
 import com.tomasmichalkevic.bakingapp.data.Recipe;
+import com.tomasmichalkevic.bakingapp.data.Step;
 import com.tomasmichalkevic.bakingapp.utils.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
@@ -72,7 +78,8 @@ public class MainActivity extends Activity {
 
     private RecyclerView.LayoutManager mLayoutManagerRecipes;
 
-    @BindView(R.id.recipe_recycler_view) RecyclerView recipesRecyclerView;
+    @BindView(R.id.recipe_recycler_view)
+    RecyclerView recipesRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +92,9 @@ public class MainActivity extends Activity {
             @Override
             public void onItemClick(Recipe view) {
                 Toast.makeText(MainActivity.this, "Clicked on card! " + view.getName(), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+                intent.putExtra("data", new Gson().toJson(view).toString());
+                startActivity(intent);
             }
         });
 
@@ -98,9 +108,10 @@ public class MainActivity extends Activity {
 
         recipes.clear();
 
-        if(isNetworkAvailable(this)){
+        if (isNetworkAvailable(this)) {
             recipes.addAll(getRecipes());
-        }else{
+            //recipes.add(getMock());
+        } else {
             Toast.makeText(this, "Cannot refresh due to no network!",
                     Toast.LENGTH_LONG).show();
         }
@@ -115,23 +126,36 @@ public class MainActivity extends Activity {
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
-    public static ArrayList<Recipe> getRecipes(){
+    public static ArrayList<Recipe> getRecipes() {
         JsonUtil jsonUtil = new JsonUtil();
         ArrayList<Recipe> result = new ArrayList<>();
         String json = "";
 
-        try{
+        try {
             json = jsonUtil.execute(recipeListUrl).get();
         } catch (InterruptedException | ExecutionException e) {
             Log.e(LOG_TAG, "getRecipes: ", e);
         } finally {
 
-            if(json.equals("")){
+            if (json.equals("")) {
                 return result;
             }
             Recipe[] recipes = new Gson().fromJson(json, Recipe[].class);
             result.addAll(Arrays.asList(recipes));
             return result;
         }
+    }
+
+    public Recipe getMock() {
+        ArrayList<Step> steps = new ArrayList<>();
+        steps.add(new Step(1, "Buy stuff to cook", "Pretty self explanatory step, buy stuff", "Youtube", ""));
+        ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
+        ingredients.add(new Ingredient(1.1, "oz", "Sugar"));
+        return new Recipe(1,
+                "Nutella",
+                ingredients,
+                steps,
+                1,
+                "");
     }
 }

@@ -40,13 +40,19 @@ package com.tomasmichalkevic.bakingapp;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+
+import com.google.gson.Gson;
+import com.tomasmichalkevic.bakingapp.RecipeDetailsFragment.OnListItemClickListener;
+import com.tomasmichalkevic.bakingapp.data.Step;
 
 /**
  * Created by tomasmichalkevic on 29/04/2018.
  */
 
-public class DetailsActivity extends Activity {
+public class DetailsActivity extends Activity implements OnListItemClickListener {
 
     private boolean mTwoPane;
 
@@ -55,16 +61,42 @@ public class DetailsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
 
-        if(findViewById(R.id.tablet_recipe_details_layout) != null){
+        if (findViewById(R.id.tablet_recipe_details_layout) != null) {
             mTwoPane = true;
 
             FragmentManager fragmentManager = getFragmentManager();
 
             StepDetailsFragment stepDetailsFragment = new StepDetailsFragment();
 
+            stepDetailsFragment.setData(new Step());
+
             fragmentManager.beginTransaction()
                     .add(R.id.step_details_fragment, stepDetailsFragment).commit();
+        } else {
+            mTwoPane = false;
         }
     }
 
+    @Override
+    public void onListItemSelected(String json) {
+        if(mTwoPane){
+
+            StepDetailsFragment stepDetailsFragment = new StepDetailsFragment();
+            Log.i("stuff", "onListItemSelected: " + new Gson().fromJson(json, Step.class).getDescription());
+            stepDetailsFragment.setData(new Gson().fromJson(json, Step.class));
+
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.step_details_fragment, stepDetailsFragment)
+                    .commit();
+
+        }else{
+            Bundle bundle = new Bundle();
+            Intent intent;
+            bundle.putString("data", json);
+            intent = new Intent(this, RecipeStepActivity.class);
+            intent.putExtras(bundle);
+            startActivity(intent);
+        }
+
+    }
 }

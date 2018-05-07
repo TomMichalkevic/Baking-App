@@ -41,14 +41,13 @@ package com.tomasmichalkevic.bakingapp;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.tomasmichalkevic.bakingapp.data.Recipe;
+import com.tomasmichalkevic.bakingapp.data.Ingredient;
+import com.tomasmichalkevic.bakingapp.data.Step;
 
 import java.util.List;
 
@@ -56,70 +55,53 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * Created by tomasmichalkevic on 25/04/2018.
+ * Created by tomasmichalkevic on 07/05/2018.
  */
 
-public class RecipeCardAdapter extends RecyclerView.Adapter<RecipeCardAdapter.ViewHolder> {
+public class IngredientCardAdapter extends RecyclerView.Adapter<IngredientCardAdapter.ViewHolder> {
 
-    private List<Recipe> recipeList;
-    private ItemClickListener listener;
+    private List<Ingredient> ingredientList;
 
-    public RecipeCardAdapter(List<Recipe> recipeList, ItemClickListener listener) {
-        this.recipeList = recipeList;
-        this.listener = listener;
+    public IngredientCardAdapter(List<Ingredient> ingredientList) {
+        this.ingredientList = ingredientList;
     }
 
-    public interface ItemClickListener {
-        public void onItemClick(Recipe view);
+    @NonNull
+    @Override
+    public IngredientCardAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.ingredient_card_item, parent, false);
+        return new IngredientCardAdapter.ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull IngredientCardAdapter.ViewHolder holder, int position) {
+        holder.bind(ingredientList.get(position));
+    }
+
+    @Override
+    public int getItemCount() {
+        return ingredientList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        @BindView(R.id.tv_recipe)
-        TextView recipeTitle;
-        @BindView(R.id.tv_ingredient_count)
-        TextView ingredientsCount;
-        @BindView(R.id.tv_step_count)
-        TextView stepsCount;
-        @BindView(R.id.tv_serving_count)
-        TextView servingsCount;
-        @BindView(R.id.recipe_card_view)
-        CardView cardView;
+        @BindView(R.id.tv_ingredient)
+        TextView ingredientTV;
+        @BindView(R.id.tv_quantity_count)
+        TextView quantityCountTV;
+        @BindView(R.id.tv_measure_type)
+        TextView mesureTypeTV;
 
         public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
 
-        public void bind(final Recipe recipe, final ItemClickListener listener) {
-            recipeTitle.setText(recipe.getName());
-            ingredientsCount.setText(String.valueOf(recipe.getIngredients().size()));
-            stepsCount.setText(String.valueOf(recipe.getSteps().size()));
-            servingsCount.setText(String.valueOf(recipe.getServings()));
-            cardView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.onItemClick(recipe);
-                }
-            });
+        public void bind(final Ingredient ingredient) {
+            ingredientTV.setText(ingredient.getIngredient());
+            quantityCountTV.setText(String.valueOf(ingredient.getQuantity()));
+            mesureTypeTV.setText(ingredient.getMeasure());
         }
-    }
-
-    @NonNull
-    @Override
-    public RecipeCardAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.recipe_card_item, parent, false);
-        return new ViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bind(recipeList.get(position), listener);
-    }
-
-    @Override
-    public int getItemCount() {
-        return recipeList.size();
     }
 }
