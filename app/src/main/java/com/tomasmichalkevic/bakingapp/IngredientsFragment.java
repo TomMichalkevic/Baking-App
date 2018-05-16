@@ -43,6 +43,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,14 +77,18 @@ public class IngredientsFragment extends Fragment {
     RecyclerView ingredientRecyclerView;
 
     private Ingredient[] ingredients = {};
+    private String data = "";
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_ingredients, container, false);
         ButterKnife.bind(this, rootView);
-        String data = getActivity().getIntent().getExtras().getString("data");
-        Ingredient[] ingredientsArray = new Gson().fromJson(data, Ingredient[].class);
+        if(ingredients.length == 0){
+            data = getActivity().getIntent().getExtras().getString("data");
+            //Recipe recipe = new Gson().fromJson(data, Recipe.class);
+            ingredients = new Gson().fromJson(data, Ingredient[].class);
+        }
 
         ingredientCardAdapter = new IngredientCardAdapter(ingredientList);
 
@@ -95,7 +100,7 @@ public class IngredientsFragment extends Fragment {
 
         ingredientList.clear();
 
-        Collections.addAll(ingredientList, ingredientsArray);
+        Collections.addAll(ingredientList, ingredients);
 
         ingredientCardAdapter.notifyDataSetChanged();
         return rootView;

@@ -93,7 +93,7 @@ public class JsonUtil extends AsyncTask<String, Void, String> {
             result = stringBuilder.toString();
         } catch (IOException e){
             Log.e(LOG_TAG, "doInBackground: ", e);
-            result = null;
+            result = "";
         }
         return result;
     }

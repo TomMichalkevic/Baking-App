@@ -46,6 +46,8 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.tomasmichalkevic.bakingapp.RecipeDetailsFragment.OnListItemClickListener;
+import com.tomasmichalkevic.bakingapp.data.Ingredient;
+import com.tomasmichalkevic.bakingapp.data.Recipe;
 import com.tomasmichalkevic.bakingapp.data.Step;
 
 /**
@@ -60,18 +62,20 @@ public class DetailsActivity extends Activity implements OnListItemClickListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
+        Log.i("TESTING", "onCreate: " + getIntent().hasExtra("data"));
+        Recipe recipe = new Gson().fromJson(getIntent().getStringExtra("data"),
+                Recipe.class);
 
         if (findViewById(R.id.tablet_recipe_details_layout) != null) {
             mTwoPane = true;
 
             FragmentManager fragmentManager = getFragmentManager();
 
-            StepDetailsFragment stepDetailsFragment = new StepDetailsFragment();
-
-            stepDetailsFragment.setData(new Step());
+            IngredientsFragment ingredientsFragment = new IngredientsFragment();
+            ingredientsFragment.setData(recipe.getIngredients().toArray(new Ingredient[]{}));
 
             fragmentManager.beginTransaction()
-                    .add(R.id.step_details_fragment, stepDetailsFragment).commit();
+                    .add(R.id.step_details_fragment, ingredientsFragment).commit();
         } else {
             mTwoPane = false;
         }
@@ -79,24 +83,42 @@ public class DetailsActivity extends Activity implements OnListItemClickListener
 
     @Override
     public void onListItemSelected(String json) {
-        if(mTwoPane){
-
-            StepDetailsFragment stepDetailsFragment = new StepDetailsFragment();
-            Log.i("stuff", "onListItemSelected: " + new Gson().fromJson(json, Step.class).getDescription());
-            stepDetailsFragment.setData(new Gson().fromJson(json, Step.class));
-
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.step_details_fragment, stepDetailsFragment)
-                    .commit();
-
+        if(json.equals("ingredients")){
+            if(getIntent().hasExtra("data")){
+                Recipe recipe = new Gson().fromJson(getIntent().getStringExtra("data"),
+                        Recipe.class);
+                if(mTwoPane){
+                    Log.i("TESTING ", "onListItemSelected:setting stuff up for ingredient two pane");
+                    IngredientsFragment ingredientsFragment = new IngredientsFragment();
+                    ingredientsFragment.setData(recipe.getIngredients().toArray(new Ingredient[]{}));
+                    getFragmentManager().beginTransaction()
+                            .replace(R.id.step_details_fragment, ingredientsFragment)
+                            .commit();
+                }else{
+                    Bundle bundle = new Bundle();
+                    Intent intent;
+                    bundle.putString("data", new Gson().toJson(recipe.getIngredients()));
+                    intent = new Intent(this, IngredientsActivity.class);
+                    intent.putExtras(bundle);
+                    startActivity(intent);
+                }
+            }
         }else{
-            Bundle bundle = new Bundle();
-            Intent intent;
-            bundle.putString("data", json);
-            intent = new Intent(this, RecipeStepActivity.class);
-            intent.putExtras(bundle);
-            startActivity(intent);
-        }
+            if(mTwoPane){
+                StepDetailsFragment stepDetailsFragment = new StepDetailsFragment();
+                stepDetailsFragment.setData(new Gson().fromJson(json, Step.class));
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.step_details_fragment, stepDetailsFragment)
+                        .commit();
 
+            }else{
+                Bundle bundle = new Bundle();
+                Intent intent;
+                bundle.putString("data", json);
+                intent = new Intent(this, RecipeStepActivity.class);
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+        }
     }
 }

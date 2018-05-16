@@ -98,12 +98,7 @@ public class RecipeDetailsFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                Bundle bundle = new Bundle();
-                Intent intent;
-                bundle.putString("data", new Gson().toJson(recipe.getIngredients()));
-                intent = new Intent(getContext(), IngredientsActivity.class);
-                intent.putExtras(bundle);
-                startActivity(intent);
+                mCallback.onListItemSelected("ingredients");
             }
         });
         recipeIngredientsSumTV.setText(getIngredientsSummary(recipe));

@@ -39,6 +39,9 @@
 package com.tomasmichalkevic.bakingapp;
 
 import android.app.Fragment;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -47,6 +50,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
+import com.google.android.exoplayer2.trackselection.TrackSelector;
+import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.tomasmichalkevic.bakingapp.data.Step;
 
 import butterknife.BindView;
@@ -56,10 +75,14 @@ import butterknife.ButterKnife;
  * Created by tomasmichalkevic on 30/04/2018.
  */
 
-public class StepDetailsFragment extends Fragment {
+public class StepDetailsFragment extends Fragment implements ExoPlayer.EventListener{
 
     @BindView(R.id.step_description) TextView stepDescription;
+    @BindView(R.id.playerView) SimpleExoPlayerView playerView;
 
+    private SimpleExoPlayer simpleExoPlayer;
+    private PlaybackState.Builder mStateBuilder;
+    private static MediaSession mediaSession;
     private Step step;
 
     @Nullable
@@ -70,15 +93,77 @@ public class StepDetailsFragment extends Fragment {
 
         if(step != null){
             stepDescription.setText(step.getDescription());
-            Log.i("stuff", "onCreateView: been here");
+            initializePlayer(Uri.parse(step.getVideoURL()));
         }
-
-
         return rootView;
     }
 
     public void setData(Step step) {
         this.step = step;
         Log.i("stuff", "setData: " + step.getDescription());
+    }
+
+    private void initializePlayer(Uri mediaUri) {
+        if (simpleExoPlayer == null) {
+            TrackSelector trackSelector = new DefaultTrackSelector();
+            LoadControl loadControl = new DefaultLoadControl();
+            simpleExoPlayer = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector, loadControl);
+            playerView.setPlayer(simpleExoPlayer);
+            String userAgent = "Agent";
+            MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
+                    getContext(), userAgent), new DefaultExtractorsFactory(), null,
+                    null);
+            simpleExoPlayer.prepare(mediaSource);
+            simpleExoPlayer.setPlayWhenReady(false);
+        }
+    }
+
+    private void releasePlayer() {
+        simpleExoPlayer.stop();
+        simpleExoPlayer.release();
+        simpleExoPlayer = null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        releasePlayer();
+    }
+
+    @Override
+    public void onTimelineChanged(Timeline timeline, Object manifest) {
+
+    }
+
+    @Override
+    public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+
+    }
+
+    @Override
+    public void onLoadingChanged(boolean isLoading) {
+
+    }
+
+    @Override
+    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        if((playbackState == ExoPlayer.STATE_READY) && playWhenReady){
+            mStateBuilder.setState(PlaybackState.STATE_PLAYING,
+                    simpleExoPlayer.getCurrentPosition(), 1f);
+        } else if((playbackState == ExoPlayer.STATE_READY)){
+            mStateBuilder.setState(PlaybackState.STATE_PAUSED,
+                    simpleExoPlayer.getCurrentPosition(), 1f);
+        }
+        mediaSession.setPlaybackState(mStateBuilder.build());
+    }
+
+    @Override
+    public void onPlayerError(ExoPlaybackException error) {
+
+    }
+
+    @Override
+    public void onPositionDiscontinuity() {
+
     }
 }

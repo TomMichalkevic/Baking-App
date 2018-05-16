@@ -132,7 +132,9 @@ public class MainActivity extends Activity {
         String json = "";
 
         try {
+            Log.i(LOG_TAG, "getRecipes: getting stuff");
             json = jsonUtil.execute(recipeListUrl).get();
+            Log.i(LOG_TAG, "getRecipes: " + json);
         } catch (InterruptedException | ExecutionException e) {
             Log.e(LOG_TAG, "getRecipes: ", e);
         } finally {
@@ -151,6 +153,7 @@ public class MainActivity extends Activity {
         steps.add(new Step(1, "Buy stuff to cook", "Pretty self explanatory step, buy stuff", "Youtube", ""));
         ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
         ingredients.add(new Ingredient(1.1, "oz", "Sugar"));
+        ingredients.add(new Ingredient(1.2, "oz", "Some ingredient"));
         return new Recipe(1,
                 "Nutella",
                 ingredients,
