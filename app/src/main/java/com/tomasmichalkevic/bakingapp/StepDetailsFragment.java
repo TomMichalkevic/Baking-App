@@ -93,7 +93,12 @@ public class StepDetailsFragment extends Fragment implements ExoPlayer.EventList
 
         if(step != null){
             stepDescription.setText(step.getDescription());
-            initializePlayer(Uri.parse(step.getVideoURL()));
+            if(!step.getVideoURL().equals("")){
+                initializePlayer(Uri.parse(step.getVideoURL()));
+            }else{
+                initializePlayer(Uri.parse(step.getThumbnailURL()));
+            }
+
         }
         return rootView;
     }

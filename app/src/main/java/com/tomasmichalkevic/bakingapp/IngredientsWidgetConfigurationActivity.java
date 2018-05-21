@@ -39,41 +39,35 @@
 package com.tomasmichalkevic.bakingapp;
 
 import android.app.Activity;
-import android.app.IntentService;
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProviderInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
-import android.support.test.espresso.IdlingResource;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.tomasmichalkevic.bakingapp.IdlingResource.SimpleIdlingResource;
-import com.tomasmichalkevic.bakingapp.data.Ingredient;
 import com.tomasmichalkevic.bakingapp.data.Recipe;
-import com.tomasmichalkevic.bakingapp.data.Step;
 import com.tomasmichalkevic.bakingapp.utils.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends Activity {
+import static android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID;
+import static android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID;
+
+public class IngredientsWidgetConfigurationActivity extends Activity{
 
     private static String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String recipeListUrl = BuildConfig.RECIPE_LIST_LINK;
@@ -83,15 +77,13 @@ public class MainActivity extends Activity {
 
     private RecyclerView.LayoutManager mLayoutManagerRecipes;
 
-    @Nullable
-    private SimpleIdlingResource simpleIdlingResource;
-
     @BindView(R.id.recipe_recycler_view)
     RecyclerView recipesRecyclerView;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
@@ -99,10 +91,7 @@ public class MainActivity extends Activity {
         recipeCardAdapter = new RecipeCardAdapter(recipes, new RecipeCardAdapter.ItemClickListener() {
             @Override
             public void onItemClick(Recipe view) {
-                Toast.makeText(MainActivity.this, "Clicked on card! " + view.getName(), Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
-                intent.putExtra("data", new Gson().toJson(view).toString());
-                startActivity(intent);
+                showWidget(view);
             }
         });
 
@@ -118,13 +107,16 @@ public class MainActivity extends Activity {
 
         if (isNetworkAvailable(this)) {
             recipes.addAll(getRecipes());
-            //recipes.add(getMock());
         } else {
             Toast.makeText(this, "Cannot refresh due to no network!",
                     Toast.LENGTH_LONG).show();
         }
 
         recipeCardAdapter.notifyDataSetChanged();
+
+        //setResult(RESULT_CANCELED);
+
+        //initialiseIngredientList();
     }
 
     public static boolean isNetworkAvailable(Context context) {
@@ -139,14 +131,8 @@ public class MainActivity extends Activity {
         ArrayList<Recipe> result = new ArrayList<>();
         String json = "";
 
-        if (simpleIdlingResource != null) {
-            simpleIdlingResource.setIdleState(false);
-        }
-
         try {
-            Log.i(LOG_TAG, "getRecipes: getting stuff");
             json = jsonUtil.execute(recipeListUrl).get();
-            Log.i(LOG_TAG, "getRecipes: " + json);
         } catch (InterruptedException | ExecutionException e) {
             Log.e(LOG_TAG, "getRecipes: ", e);
         } finally {
@@ -156,34 +142,37 @@ public class MainActivity extends Activity {
             }
             Recipe[] recipes = new Gson().fromJson(json, Recipe[].class);
             result.addAll(Arrays.asList(recipes));
-            if (simpleIdlingResource != null) {
-                simpleIdlingResource.setIdleState(true);
-            }
             return result;
         }
     }
 
-    public Recipe getMock() {
-        ArrayList<Step> steps = new ArrayList<>();
-        steps.add(new Step(1, "Buy stuff to cook", "Pretty self explanatory step, buy stuff", "Youtube", ""));
-        ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
-        ingredients.add(new Ingredient(1.1, "oz", "Sugar"));
-        ingredients.add(new Ingredient(1.2, "oz", "Some ingredient"));
-        return new Recipe(1,
-                "Nutella",
-                ingredients,
-                steps,
-                1,
-                "");
-    }
+    private void showWidget(Recipe recipe) {
 
-    @VisibleForTesting
-    @NonNull
-    public IdlingResource getIdlingResource(){
-        if(simpleIdlingResource==null){
-            simpleIdlingResource = new SimpleIdlingResource();
+        int appWidgetId = INVALID_APPWIDGET_ID;
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+            appWidgetId = extras.getInt(EXTRA_APPWIDGET_ID,
+                    INVALID_APPWIDGET_ID);
+
+            AppWidgetProviderInfo providerInfo = AppWidgetManager.getInstance(
+                    getBaseContext()).getAppWidgetInfo(appWidgetId);
+            String appWidgetLabel = providerInfo.label;
+
+            Intent startService = new Intent(this,
+                    IngredientsCollectionWidget.UpdateWidgetService.class);
+            startService.putExtra(EXTRA_APPWIDGET_ID, appWidgetId);
+            startService.putExtra("data", new Gson().toJson(recipe.getIngredients()));
+            startService.setAction("FROM CONFIGURATION ACTIVITY");
+            setResult(RESULT_OK, startService);
+            startService(startService);
+
+            finish();
         }
-        return simpleIdlingResource;
+        if (appWidgetId == INVALID_APPWIDGET_ID) {
+            Log.i("TESTING", "BAD STUFF");
+            finish();
+        }
 
     }
 }
