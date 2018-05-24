@@ -48,8 +48,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -66,6 +69,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.squareup.picasso.Picasso;
 import com.tomasmichalkevic.bakingapp.data.Step;
 
 import butterknife.BindView;
@@ -77,13 +81,19 @@ import butterknife.ButterKnife;
 
 public class StepDetailsFragment extends Fragment implements ExoPlayer.EventListener{
 
-    @BindView(R.id.step_description) TextView stepDescription;
-    @BindView(R.id.playerView) SimpleExoPlayerView playerView;
+    @BindView(R.id.step_description)
+    TextView stepDescription;
+    @BindView(R.id.playerView)
+    SimpleExoPlayerView playerView;
+    @BindView(R.id.step_image_view)
+    ImageView stepImageView;
 
     private SimpleExoPlayer simpleExoPlayer;
     private PlaybackState.Builder mStateBuilder;
     private static MediaSession mediaSession;
     private Step step;
+    private String videoURL = "";
+    private long position;
 
     @Nullable
     @Override
@@ -94,13 +104,63 @@ public class StepDetailsFragment extends Fragment implements ExoPlayer.EventList
         if(step != null){
             stepDescription.setText(step.getDescription());
             if(!step.getVideoURL().equals("")){
-                initializePlayer(Uri.parse(step.getVideoURL()));
+                Log.i("TESTING", "onCreateView: " + step.getVideoURL());
+                if(getFileType(step.getVideoURL()).equals("mp4")){
+                    stepImageView.setVisibility(View.GONE);
+                    videoURL = step.getVideoURL();
+                    initializePlayer(Uri.parse(videoURL));
+                }else if(step.getThumbnailURL().equals("jpg") || step.getThumbnailURL().equals("png")){
+                    ((ViewManager)playerView.getParent()).removeView(playerView);
+                    stepImageView.setVisibility(View.VISIBLE);
+                    Picasso.with(getContext()).load(step.getThumbnailURL()).into(stepImageView);
+                }else{
+                    ((ViewManager)playerView.getParent()).removeView(playerView);
+                    stepImageView.setVisibility(View.GONE);
+                }
             }else{
-                initializePlayer(Uri.parse(step.getThumbnailURL()));
+                ((ViewManager)playerView.getParent()).removeView(playerView);
+                stepImageView.setVisibility(View.GONE);
             }
 
         }
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(savedInstanceState!=null){
+            stepDescription.setText(savedInstanceState.getString("stepDescription"));
+            videoURL = savedInstanceState.getString("videoURL");
+            initializePlayer(Uri.parse(videoURL));
+            position = savedInstanceState.getLong("position", C.TIME_UNSET);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!videoURL.equals(""))
+            initializePlayer(Uri.parse(videoURL));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (simpleExoPlayer != null) {
+            position = simpleExoPlayer.getCurrentPosition();
+            simpleExoPlayer.stop();
+            simpleExoPlayer.release();
+            simpleExoPlayer = null;
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("stepDescription", stepDescription.getText().toString());
+        outState.putString("videoURL", videoURL);
+        outState.putLong("position", position);
     }
 
     public void setData(Step step) {
@@ -123,16 +183,14 @@ public class StepDetailsFragment extends Fragment implements ExoPlayer.EventList
         }
     }
 
-    private void releasePlayer() {
-        simpleExoPlayer.stop();
-        simpleExoPlayer.release();
-        simpleExoPlayer = null;
-    }
+    private static String getFileType(String url){
+        String[] result = url.split("\\.");
+        if(result.length>1){
+            return result[result.length-1];
+        }else{
+            return result[0];
+        }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        releasePlayer();
     }
 
     @Override

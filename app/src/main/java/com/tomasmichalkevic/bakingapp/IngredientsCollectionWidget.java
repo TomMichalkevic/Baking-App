@@ -38,6 +38,7 @@
 
 package com.tomasmichalkevic.bakingapp;
 
+import android.annotation.SuppressLint;
 import android.app.IntentService;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -46,10 +47,19 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.widget.RemoteViews;
+import android.widget.RemoteViewsService;
+
+import com.google.gson.Gson;
+import com.tomasmichalkevic.bakingapp.data.Ingredient;
+import com.tomasmichalkevic.bakingapp.data.Recipe;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID;
 import static android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID;
 
+@SuppressWarnings("ALL")
 public class IngredientsCollectionWidget extends AppWidgetProvider {
 
     @Override
@@ -66,15 +76,13 @@ public class IngredientsCollectionWidget extends AppWidgetProvider {
         }
     }
 
+    @SuppressLint("Registered")
     public static class UpdateWidgetService extends IntentService {
 
-        /**
-         * Creates an IntentService.  Invoked by your subclass's constructor.
-         *
-         * @param name Used to name the worker thread, important only for debugging.
-         */
-        public UpdateWidgetService(String name) {
-            super(name);
+        String data = "";
+
+        public UpdateWidgetService() {
+            super("UpdateWidgetService");
         }
 
         @Override
@@ -85,31 +93,112 @@ public class IngredientsCollectionWidget extends AppWidgetProvider {
             int incomingAppWidgetId = intent.getIntExtra(EXTRA_APPWIDGET_ID,
                     INVALID_APPWIDGET_ID);
 
-            String data = intent.getStringExtra("data");
+            data = intent.getStringExtra("data");
 
             if (incomingAppWidgetId != INVALID_APPWIDGET_ID) {
                 try {
                     updateAppWidget(appWidgetManager, incomingAppWidgetId,
                             intent);
-                } catch (NullPointerException e) {
+                } catch (NullPointerException ignored) {
                 }
 
             }
         }
 
-        public void updateAppWidget(AppWidgetManager appWidgetManager,
-                                    int appWidgetId, Intent intent) {
+        void updateAppWidget(AppWidgetManager appWidgetManager,
+                             int appWidgetId, Intent intent) {
 
             RemoteViews views = new RemoteViews(this.getPackageName(), R.layout.ingredients_widget);
 
-            setRemoteAdapter(this, views);
+            setRemoteAdapter(this, views, data);
 
             appWidgetManager.updateAppWidget(appWidgetId, views);
         }
 
-        private static void setRemoteAdapter(Context context, @NonNull final RemoteViews views) {
-            views.setRemoteAdapter(R.id.widget_list,
-                    new Intent(context, IngredientsWidgetService.class));
+        private static void setRemoteAdapter(Context context, @NonNull final RemoteViews views, String data) {
+            Intent intent = new Intent(context, IngredientsWidgetService.class);
+            intent.putExtra("data", data);
+            views.setRemoteAdapter(R.id.widget_list, intent);
+        }
+    }
+
+    public static class IngredientsWidgetService extends RemoteViewsService {
+        @Override
+        public RemoteViewsFactory onGetViewFactory(Intent intent) {
+            return new IngredientsWidgetDataProvider(this, intent);
+        }
+    }
+
+    public static class IngredientsWidgetDataProvider implements RemoteViewsService.RemoteViewsFactory {
+
+        Context context;
+        ArrayList<String> ingredientsList = new ArrayList<>();
+        Intent intent;
+
+        public IngredientsWidgetDataProvider(Context context, Intent intent){
+            this.context = context;
+            this.intent = intent;
+        }
+
+        public void init(){
+            Recipe recipe = new Gson().fromJson(intent.getStringExtra("data"), Recipe.class);
+            List<Ingredient> ingredientArrayList = recipe.getIngredients();
+            ingredientsList.clear();
+            for(Ingredient ingredient: ingredientArrayList){
+                ingredientsList.add(ingredient.getIngredient() + " " + ingredient.getQuantity() + " " + ingredient.getMeasure());
+            }
+        }
+
+        @Override
+        public void onCreate() {
+            if(intent.hasExtra("data")){
+                init();
+            }
+        }
+
+        @Override
+        public void onDataSetChanged() {
+            if(intent.hasExtra("data")){
+                init();
+            }
+        }
+
+        @Override
+        public void onDestroy() {
+
+        }
+
+        @Override
+        public int getCount() {
+            return ingredientsList.size();
+        }
+
+        @Override
+        public RemoteViews getViewAt(int position) {
+            RemoteViews view = new RemoteViews(context.getPackageName(),
+                    android.R.layout.simple_list_item_1);
+            view.setTextViewText(android.R.id.text1, ingredientsList.get(position));
+            return view;
+        }
+
+        @Override
+        public RemoteViews getLoadingView() {
+            return null;
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            return 1;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
         }
     }
 

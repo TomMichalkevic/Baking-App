@@ -53,7 +53,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.tomasmichalkevic.bakingapp.IdlingResource.SimpleIdlingResource;
 import com.tomasmichalkevic.bakingapp.data.Recipe;
 import com.tomasmichalkevic.bakingapp.utils.JsonUtil;
 
@@ -67,15 +66,13 @@ import butterknife.ButterKnife;
 import static android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID;
 import static android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID;
 
+@SuppressWarnings("ALL")
 public class IngredientsWidgetConfigurationActivity extends Activity{
 
-    private static String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String recipeListUrl = BuildConfig.RECIPE_LIST_LINK;
 
-    private ArrayList<Recipe> recipes = new ArrayList<>();
-    private RecipeCardAdapter recipeCardAdapter;
-
-    private RecyclerView.LayoutManager mLayoutManagerRecipes;
+    private final ArrayList<Recipe> recipes = new ArrayList<>();
 
     @BindView(R.id.recipe_recycler_view)
     RecyclerView recipesRecyclerView;
@@ -87,17 +84,16 @@ public class IngredientsWidgetConfigurationActivity extends Activity{
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        setResult(RESULT_CANCELED);
 
-        recipeCardAdapter = new RecipeCardAdapter(recipes, new RecipeCardAdapter.ItemClickListener() {
+        RecipeCardAdapter recipeCardAdapter = new RecipeCardAdapter(recipes, new RecipeCardAdapter.ItemClickListener() {
             @Override
             public void onItemClick(Recipe view) {
                 showWidget(view);
             }
         });
 
-        mLayoutManagerRecipes = new LinearLayoutManager(this);
-
-//        mLayoutManagerRecipes = new GridLayoutManager(this, 2);
+        RecyclerView.LayoutManager mLayoutManagerRecipes = new LinearLayoutManager(this);
 
         recipesRecyclerView.setLayoutManager(mLayoutManagerRecipes);
 
@@ -113,20 +109,16 @@ public class IngredientsWidgetConfigurationActivity extends Activity{
         }
 
         recipeCardAdapter.notifyDataSetChanged();
-
-        //setResult(RESULT_CANCELED);
-
-        //initialiseIngredientList();
     }
 
-    public static boolean isNetworkAvailable(Context context) {
+    private static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
-    public ArrayList<Recipe> getRecipes() {
+    private ArrayList<Recipe> getRecipes() {
         JsonUtil jsonUtil = new JsonUtil();
         ArrayList<Recipe> result = new ArrayList<>();
         String json = "";
@@ -162,7 +154,7 @@ public class IngredientsWidgetConfigurationActivity extends Activity{
             Intent startService = new Intent(this,
                     IngredientsCollectionWidget.UpdateWidgetService.class);
             startService.putExtra(EXTRA_APPWIDGET_ID, appWidgetId);
-            startService.putExtra("data", new Gson().toJson(recipe.getIngredients()));
+            startService.putExtra("data", new Gson().toJson(recipe));
             startService.setAction("FROM CONFIGURATION ACTIVITY");
             setResult(RESULT_OK, startService);
             startService(startService);
@@ -170,7 +162,6 @@ public class IngredientsWidgetConfigurationActivity extends Activity{
             finish();
         }
         if (appWidgetId == INVALID_APPWIDGET_ID) {
-            Log.i("TESTING", "BAD STUFF");
             finish();
         }
 

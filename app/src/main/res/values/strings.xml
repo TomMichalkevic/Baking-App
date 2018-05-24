@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Baking App</string>
+    <string name="image_view_content_desc_step">Image for step image view</string>
+    <string name="sugar_title">Sugar</string>
+    <string name="quantity_title">Quantity</string>
+    <string name="measure_title">Measure</string>
 </resources>

@@ -38,6 +38,7 @@
 
 package com.tomasmichalkevic.bakingapp.utils;
 
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ProgressBar;
@@ -55,6 +56,7 @@ import java.net.URL;
  * https://medium.com/@JasonCromer/android-asynctask-http-request-tutorial-6b429d833e28
  */
 
+@SuppressLint("StaticFieldLeak")
 public class JsonUtil extends AsyncTask<String, Void, String> {
 
     private final String LOG_TAG = JsonUtil.class.getSimpleName();

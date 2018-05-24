@@ -43,21 +43,14 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.tomasmichalkevic.bakingapp.data.Ingredient;
-import com.tomasmichalkevic.bakingapp.data.Recipe;
-import com.tomasmichalkevic.bakingapp.data.Step;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -68,31 +61,22 @@ import butterknife.ButterKnife;
 
 public class IngredientsFragment extends Fragment {
 
-    private ArrayList<Ingredient> ingredientList = new ArrayList<>();
-    private IngredientCardAdapter ingredientCardAdapter;
-
-    private RecyclerView.LayoutManager mLayoutManagerRecipes;
+    private final ArrayList<Ingredient> ingredientList = new ArrayList<>();
 
     @BindView(R.id.ingredient_recycler_view)
     RecyclerView ingredientRecyclerView;
 
     private Ingredient[] ingredients = {};
-    private String data = "";
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_ingredients, container, false);
         ButterKnife.bind(this, rootView);
-        if(ingredients.length == 0){
-            data = getActivity().getIntent().getExtras().getString("data");
-            //Recipe recipe = new Gson().fromJson(data, Recipe.class);
-            ingredients = new Gson().fromJson(data, Ingredient[].class);
-        }
 
-        ingredientCardAdapter = new IngredientCardAdapter(ingredientList);
+        IngredientCardAdapter ingredientCardAdapter = new IngredientCardAdapter(ingredientList);
 
-        mLayoutManagerRecipes = new LinearLayoutManager(getContext());
+        RecyclerView.LayoutManager mLayoutManagerRecipes = new LinearLayoutManager(getContext());
 
         ingredientRecyclerView.setLayoutManager(mLayoutManagerRecipes);
 

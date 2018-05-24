@@ -41,6 +41,7 @@ package com.tomasmichalkevic.bakingapp;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -67,6 +68,7 @@ public class DetailsActivity extends Activity implements OnListItemClickListener
                 Recipe.class);
 
         if (findViewById(R.id.tablet_recipe_details_layout) != null) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             mTwoPane = true;
 
             FragmentManager fragmentManager = getFragmentManager();

@@ -41,6 +41,7 @@ package com.tomasmichalkevic.bakingapp.data;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+@SuppressWarnings("ALL")
 public class Step {
 
     @SerializedName("id")

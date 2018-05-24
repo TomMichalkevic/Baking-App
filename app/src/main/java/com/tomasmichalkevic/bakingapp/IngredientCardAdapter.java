@@ -39,7 +39,6 @@
 package com.tomasmichalkevic.bakingapp;
 
 import android.support.annotation.NonNull;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,7 +46,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.tomasmichalkevic.bakingapp.data.Ingredient;
-import com.tomasmichalkevic.bakingapp.data.Step;
 
 import java.util.List;
 
@@ -60,7 +58,7 @@ import butterknife.ButterKnife;
 
 public class IngredientCardAdapter extends RecyclerView.Adapter<IngredientCardAdapter.ViewHolder> {
 
-    private List<Ingredient> ingredientList;
+    private final List<Ingredient> ingredientList;
 
     public IngredientCardAdapter(List<Ingredient> ingredientList) {
         this.ingredientList = ingredientList;
@@ -93,12 +91,12 @@ public class IngredientCardAdapter extends RecyclerView.Adapter<IngredientCardAd
         @BindView(R.id.tv_measure_type)
         TextView mesureTypeTV;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
 
-        public void bind(final Ingredient ingredient) {
+        void bind(final Ingredient ingredient) {
             ingredientTV.setText(ingredient.getIngredient());
             quantityCountTV.setText(String.valueOf(ingredient.getQuantity()));
             mesureTypeTV.setText(ingredient.getMeasure());

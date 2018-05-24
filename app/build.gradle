@@ -56,7 +56,7 @@ repositories{
 
 
 static def getLink(){
-    def Properties props = new Properties()
+    Properties props = new Properties()
     props.load(new FileInputStream(new File('secrets.properties')))
     return props['RECIPE_LIST_LINK']
 }

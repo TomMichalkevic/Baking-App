@@ -40,7 +40,6 @@ package com.tomasmichalkevic.bakingapp;
 
 import android.app.Fragment;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
@@ -68,12 +67,9 @@ import butterknife.ButterKnife;
 
 public class RecipeDetailsFragment extends Fragment {
 
-    private ArrayList<Step> steps = new ArrayList<>();
-    private RecipeStepCardAdapter recipeStepCardAdapter;
+    private final ArrayList<Step> steps = new ArrayList<>();
 
-    private RecyclerView.LayoutManager mLayoutManagerRecipes;
-
-    OnListItemClickListener mCallback;
+    private OnListItemClickListener mCallback;
 
     public interface OnListItemClickListener {
         void onListItemSelected(String json);
@@ -102,7 +98,7 @@ public class RecipeDetailsFragment extends Fragment {
             }
         });
         recipeIngredientsSumTV.setText(getIngredientsSummary(recipe));
-        recipeStepCardAdapter = new RecipeStepCardAdapter(steps, new RecipeStepCardAdapter.ItemClickListener() {
+        RecipeStepCardAdapter recipeStepCardAdapter = new RecipeStepCardAdapter(steps, new RecipeStepCardAdapter.ItemClickListener() {
             @Override
             public void onItemClick(Step view) {
                 mCallback.onListItemSelected(new Gson().toJson(view));
@@ -110,7 +106,7 @@ public class RecipeDetailsFragment extends Fragment {
             }
         });
 
-        mLayoutManagerRecipes = new LinearLayoutManager(getContext());
+        RecyclerView.LayoutManager mLayoutManagerRecipes = new LinearLayoutManager(getContext());
 
         recipeStepsRecyclerView.setLayoutManager(mLayoutManagerRecipes);
 
@@ -135,7 +131,7 @@ public class RecipeDetailsFragment extends Fragment {
         }
     }
 
-    public String getIngredientsSummary(Recipe recipe) {
+    private String getIngredientsSummary(Recipe recipe) {
         StringBuilder builder = new StringBuilder("Summary: ");
         for (Ingredient ingredient : recipe.getIngredients()) {
             builder.append(ingredient.getIngredient());

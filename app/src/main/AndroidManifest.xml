@@ -41,8 +41,12 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".IngredientsWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"/>
+        <service
+            android:name=".IngredientsCollectionWidget$UpdateWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <service android:name=".IngredientsCollectionWidget$IngredientsWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 
 </manifest>

@@ -39,9 +39,9 @@
 package com.tomasmichalkevic.bakingapp;
 
 import android.app.Activity;
-import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -53,35 +53,27 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.tomasmichalkevic.bakingapp.IdlingResource.SimpleIdlingResource;
-import com.tomasmichalkevic.bakingapp.data.Ingredient;
 import com.tomasmichalkevic.bakingapp.data.Recipe;
-import com.tomasmichalkevic.bakingapp.data.Step;
 import com.tomasmichalkevic.bakingapp.utils.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+@SuppressWarnings("ALL")
 public class MainActivity extends Activity {
 
-    private static String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String recipeListUrl = BuildConfig.RECIPE_LIST_LINK;
 
-    private ArrayList<Recipe> recipes = new ArrayList<>();
-    private RecipeCardAdapter recipeCardAdapter;
-
-    private RecyclerView.LayoutManager mLayoutManagerRecipes;
+    private final ArrayList<Recipe> recipes = new ArrayList<>();
 
     @Nullable
     private SimpleIdlingResource simpleIdlingResource;
@@ -96,19 +88,25 @@ public class MainActivity extends Activity {
         ButterKnife.bind(this);
 
 
-        recipeCardAdapter = new RecipeCardAdapter(recipes, new RecipeCardAdapter.ItemClickListener() {
+        RecipeCardAdapter recipeCardAdapter = new RecipeCardAdapter(recipes, new RecipeCardAdapter.ItemClickListener() {
             @Override
             public void onItemClick(Recipe view) {
                 Toast.makeText(MainActivity.this, "Clicked on card! " + view.getName(), Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
-                intent.putExtra("data", new Gson().toJson(view).toString());
+                intent.putExtra("data", new Gson().toJson(view));
                 startActivity(intent);
             }
         });
 
-        mLayoutManagerRecipes = new LinearLayoutManager(this);
-
-//        mLayoutManagerRecipes = new GridLayoutManager(this, 2);
+        Log.i(LOG_TAG, "onCreate: " + (findViewById(R.id.tablet_main_layout) != null));
+        RecyclerView.LayoutManager mLayoutManagerRecipes;
+        if (findViewById(R.id.tablet_main_layout) != null) {
+            Log.i(LOG_TAG, "onCreate: HERE");
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            mLayoutManagerRecipes = new GridLayoutManager(this, 3);
+        }else{
+            mLayoutManagerRecipes = new LinearLayoutManager(this);
+        }
 
         recipesRecyclerView.setLayoutManager(mLayoutManagerRecipes);
 
@@ -118,7 +116,6 @@ public class MainActivity extends Activity {
 
         if (isNetworkAvailable(this)) {
             recipes.addAll(getRecipes());
-            //recipes.add(getMock());
         } else {
             Toast.makeText(this, "Cannot refresh due to no network!",
                     Toast.LENGTH_LONG).show();
@@ -127,14 +124,14 @@ public class MainActivity extends Activity {
         recipeCardAdapter.notifyDataSetChanged();
     }
 
-    public static boolean isNetworkAvailable(Context context) {
+    private static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
-    public ArrayList<Recipe> getRecipes() {
+    private ArrayList<Recipe> getRecipes() {
         JsonUtil jsonUtil = new JsonUtil();
         ArrayList<Recipe> result = new ArrayList<>();
         String json = "";
@@ -161,20 +158,6 @@ public class MainActivity extends Activity {
             }
             return result;
         }
-    }
-
-    public Recipe getMock() {
-        ArrayList<Step> steps = new ArrayList<>();
-        steps.add(new Step(1, "Buy stuff to cook", "Pretty self explanatory step, buy stuff", "Youtube", ""));
-        ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
-        ingredients.add(new Ingredient(1.1, "oz", "Sugar"));
-        ingredients.add(new Ingredient(1.2, "oz", "Some ingredient"));
-        return new Recipe(1,
-                "Nutella",
-                ingredients,
-                steps,
-                1,
-                "");
     }
 
     @VisibleForTesting

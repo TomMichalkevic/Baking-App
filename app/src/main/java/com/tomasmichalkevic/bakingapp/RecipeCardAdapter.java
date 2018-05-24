@@ -41,12 +41,10 @@ package com.tomasmichalkevic.bakingapp;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.tomasmichalkevic.bakingapp.data.Recipe;
 
@@ -61,8 +59,8 @@ import butterknife.ButterKnife;
 
 public class RecipeCardAdapter extends RecyclerView.Adapter<RecipeCardAdapter.ViewHolder> {
 
-    private List<Recipe> recipeList;
-    private ItemClickListener listener;
+    private final List<Recipe> recipeList;
+    private final ItemClickListener listener;
 
     public RecipeCardAdapter(List<Recipe> recipeList, ItemClickListener listener) {
         this.recipeList = recipeList;
@@ -70,7 +68,7 @@ public class RecipeCardAdapter extends RecyclerView.Adapter<RecipeCardAdapter.Vi
     }
 
     public interface ItemClickListener {
-        public void onItemClick(Recipe view);
+        void onItemClick(Recipe view);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -86,12 +84,12 @@ public class RecipeCardAdapter extends RecyclerView.Adapter<RecipeCardAdapter.Vi
         @BindView(R.id.recipe_card_view)
         CardView cardView;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
 
-        public void bind(final Recipe recipe, final ItemClickListener listener) {
+        void bind(final Recipe recipe, final ItemClickListener listener) {
             recipeTitle.setText(recipe.getName());
             ingredientsCount.setText(String.valueOf(recipe.getIngredients().size()));
             stepsCount.setText(String.valueOf(recipe.getSteps().size()));

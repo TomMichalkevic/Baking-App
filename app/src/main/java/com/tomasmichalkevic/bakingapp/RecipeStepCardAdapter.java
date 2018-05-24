@@ -59,8 +59,8 @@ import butterknife.ButterKnife;
 
 public class RecipeStepCardAdapter extends RecyclerView.Adapter<RecipeStepCardAdapter.ViewHolder> {
 
-    private List<Step> stepList;
-    private ItemClickListener listener;
+    private final List<Step> stepList;
+    private final ItemClickListener listener;
 
     public RecipeStepCardAdapter(List<Step> stepList, ItemClickListener listener){
         this.stepList = stepList;
@@ -68,7 +68,7 @@ public class RecipeStepCardAdapter extends RecyclerView.Adapter<RecipeStepCardAd
     }
 
     public interface ItemClickListener {
-        public void onItemClick(Step view);
+        void onItemClick(Step view);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
@@ -76,12 +76,12 @@ public class RecipeStepCardAdapter extends RecyclerView.Adapter<RecipeStepCardAd
         @BindView(R.id.recipe_step_text_view) TextView recipeStepDescription;
         @BindView(R.id.recipe_step_card_view) CardView cardView;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
 
-        public void bind(final Step step, final ItemClickListener listener){
+        void bind(final Step step, final ItemClickListener listener){
             recipeStepDescription.setText(step.getShortDescription());
             cardView.setOnClickListener(new View.OnClickListener() {
                 @Override
