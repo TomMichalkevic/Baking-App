@@ -10,7 +10,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         applicationVariants.all { variant ->
-            variant.buildConfigField "String", "RECIPE_LIST_LINK", getLink()
+            variant.buildConfigField "String", "RECIPE_LIST_LINK", "\"https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/baking.json\""
         }
     }
     buildTypes {
@@ -51,12 +51,4 @@ repositories{
     maven {
         url 'https://maven.google.com'
     }
-}
-
-
-
-static def getLink(){
-    Properties props = new Properties()
-    props.load(new FileInputStream(new File('secrets.properties')))
-    return props['RECIPE_LIST_LINK']
 }
