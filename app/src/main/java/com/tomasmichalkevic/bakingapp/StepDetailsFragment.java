@@ -133,7 +133,11 @@ public class StepDetailsFragment extends Fragment implements ExoPlayer.EventList
             stepDescription.setText(savedInstanceState.getString("stepDescription"));
             videoURL = savedInstanceState.getString("videoURL");
             initializePlayer(Uri.parse(videoURL));
-            position = savedInstanceState.getLong("position", C.TIME_UNSET);
+            simpleExoPlayer.seekTo(savedInstanceState.getLong("position", C.TIME_UNSET));
+            //simpleExoPlayer.setPlayWhenReady(savedInstanceState.getInt("player_state"));
+            if(savedInstanceState.getLong("position", C.TIME_UNSET)!=0){
+                simpleExoPlayer.setPlayWhenReady(true);
+            }
         }
     }
 
@@ -165,7 +169,6 @@ public class StepDetailsFragment extends Fragment implements ExoPlayer.EventList
 
     public void setData(Step step) {
         this.step = step;
-        Log.i("stuff", "setData: " + step.getDescription());
     }
 
     private void initializePlayer(Uri mediaUri) {
